@@ -18,16 +18,16 @@ def ranking_wins():
     user_data = users()
     if not user_data:
         return
-    sorted_users = sorted(user_data.items(), key=lambda item: item[1]['partidas_ganadas'], reverse=True)
+    user_order = sorted(user_data.items(), key=lambda item: item[1]['partidas_ganadas'], reverse=True)
     print("Ranking de partidas ganadas:")
-    for position, (username, data) in enumerate(sorted_users, start=1):
+    for position, (username, data) in enumerate(user_order, start=1):
         print(f"{position} - {username} - {data['partidas_ganadas']}")
 
 def ranking_plays():
     user_data = users()
     if not user_data:
         return
-    sorted_users = sorted(user_data.items(), key=lambda item: item[1]['partidas_jugadas'], reverse=True)
+    user_order = sorted(user_data.items(), key=lambda item: item[1]['partidas_jugadas'], reverse=True)
     print("Ranking de partidas jugadas:")
-    for position, (username, data) in enumerate(sorted_users, start=1):
+    for position, (username, data) in enumerate(user_order, start=1):
         print(f"{position} - {username} - {data['partidas_jugadas']}")

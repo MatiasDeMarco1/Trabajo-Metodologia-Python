@@ -1,5 +1,5 @@
 from Main_menu.register.register import register
-from Main_menu.login.login import login
+from Main_menu.login.login import login, logged_player 
 from Main_menu.ranking.ranking import ranking_plays,ranking_wins
 
 def print_menu(filename):
@@ -31,7 +31,10 @@ def menus():
             elif ranking_choice == '0':
                 continue
         elif choice == '4':
-            print("Inicio de juego...")
+            if len(logged_player) < 2:
+                print("Se necesitan 2 jugadores para iniciar el juego")
+            else:
+                 print("Inicio de juego...")
         elif choice == '0':
             print("Saliendo del programa.")
             break

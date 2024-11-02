@@ -1,0 +1,6 @@
+--- Menu Principal ---
+1. Iniciar sesion
+2. Registrarse
+3. Ranking
+4. Inicio de juego
+0. Exit

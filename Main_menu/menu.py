@@ -35,8 +35,8 @@ def menus():
             if len(logged_player) < 2:
                 print("Se necesitan 2 jugadores para iniciar el juego")
             else:
-                 print("Inicio de juego...")
-                 game()
+                    print("Inicio de juego...")
+                    game()
         elif choice == '0':
             print("Saliendo del programa.")
             break

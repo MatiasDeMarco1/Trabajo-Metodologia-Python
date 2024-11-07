@@ -10,6 +10,7 @@ class Piece:
         self.is_king = True  
 
 def game():
+    moves = []
     def create_board():
         board = [[None for _ in range(8)] for _ in range(8)]
         for row in range(8):
@@ -29,7 +30,6 @@ def game():
                 canvas.grid(row=row, column=col)
                 canvas.bind("<Button-1>", lambda event, r=row, c=col: on_click(event, r, c))
                 canvases[(row, col)] = canvas
-
                 piece = board[row][col]
                 if piece:
                     piece_color = "red" if piece.color == "red" else "white"
@@ -40,9 +40,7 @@ def game():
 
     def on_click(event, row, col):
         nonlocal selected_piece, selected_coords, turn
-
         if selected_piece is None:
-            # Solo seleccionar una pieza si es el turno del jugador correspondiente
             piece = (
                 canvases[(row, col)].find_withtag("red_piece") or
                 canvases[(row, col)].find_withtag("red_king") if turn == "red" else
@@ -53,66 +51,46 @@ def game():
                 selected_piece = board[row][col]
                 selected_coords = (row, col)
                 highlight_piece(row, col)
-                highlight_valid_moves()  # Resaltar los movimientos válidos para la pieza seleccionada
-
+                highlight_valid_moves() 
         else:
-            # Verificar si el movimiento es válido
             if is_valid_move(row, col):
-                # Realizar el movimiento de la pieza
-                capture_found = move_piece(row, col)  # Ahora capturamos el resultado de move_piece
-
-                # Si es un movimiento normal (sin captura), cambiar de turno inmediatamente
+                capture_found = move_piece(row, col)
                 if not capture_found:
-                    turn = "white" if turn == "red" else "red"  # Cambiar turno
-
-                # Si la pieza realizó una captura, verificar si hay capturas adicionales posibles
+                    turn = "white" if turn == "red" else "red" 
                 elif capture_found:
-                    # Usamos la función correcta: check_for_chain_capture
                     if not check_for_chain_capture(row, col):
-                        # Si no hay más capturas encadenadas, cambiar de turno
                         turn = "white" if turn == "red" else "red"
                 
                 selected_piece = None
                 selected_coords = None
-                remove_highlight()  # Eliminar el resaltado de la pieza seleccionada
-                check_game_over()  # Comprobar si el juego ha terminado
+                remove_highlight()  
+                check_game_over() 
             else:
-                # Si el movimiento no es válido, deseleccionar la pieza
                 remove_highlight()
                 selected_piece = None 
-                highlight_valid_moves()  # Volver a mostrar los movimientos válidos para la pieza seleccionada
-
-
+                highlight_valid_moves()
 
     def check_for_chain_capture(row, col):
         piece_color = selected_piece.color
         captured_coords = None
-
         for d_row, d_col in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
             current_row, current_col = row, col
-
             if not selected_piece.is_king:
                 if piece_color == "red" and d_row < 0:  
                     continue
                 elif piece_color == "white" and d_row > 0:  
                     continue
-
             while True:
                 current_row += d_row
                 current_col += d_col
-
                 if not (0 <= current_row < 8 and 0 <= current_col < 8):
                     break
-
                 opponent_piece_tag = "white_piece" if piece_color == "red" else "red_piece"
                 opponent_king_tag = "white_king" if piece_color == "red" else "red_king"
-
                 if (canvases[(current_row, current_col)].find_withtag(opponent_piece_tag) or 
                     canvases[(current_row, current_col)].find_withtag(opponent_king_tag)):
-
                     next_row = current_row + d_row
                     next_col = current_col + d_col
-
                     if 0 <= next_row < 8 and 0 <= next_col < 8 and (next_row + next_col) % 2 == 1:
                         if not (canvases[(next_row, next_col)].find_withtag("red_piece") or
                                 canvases[(next_row, next_col)].find_withtag("white_piece") or
@@ -122,7 +100,6 @@ def game():
                         else:
                             break  
         return False
-
     def highlight_piece(row, col):
         canvas = canvases[(row, col)]
         piece_tag = (
@@ -133,12 +110,10 @@ def game():
         pieces = canvas.find_withtag(piece_tag)
         for piece in pieces:
             canvas.itemconfig(piece, outline="yellow", width=3)
-
     def highlight_valid_moves():
         if selected_piece: 
             old_row, old_col = selected_coords
             move_directions = [(1, 1), (1, -1)] if turn == "red" else [(-1, -1), (-1, 1)]
-
             if selected_piece.is_king:
                 move_directions += [(-1, -1), (-1, 1), (1, -1), (1, 1)] 
             for d_row, d_col in move_directions:
@@ -152,7 +127,6 @@ def game():
                         break 
                     new_row += d_row
                     new_col += d_col
-
     def remove_highlight():
         for r in range(8):
             for c in range(8):
@@ -161,7 +135,6 @@ def game():
                 canvases[(r, c)].itemconfig("red_king", outline="")
                 canvases[(r, c)].itemconfig("white_king", outline="")
                 canvases[(r, c)].delete("valid_move")
-
     def is_valid_move(row, col):
         if (row + col) % 2 == 1:  
             old_row, old_col = selected_coords
@@ -171,18 +144,15 @@ def game():
                 for d_row, d_col in [(-1, -1), (-1, 1), (1, -1), (1, 1)]:
                     current_row, current_col = old_row, old_col
                     capture_found = False
-
                     while True:
                         current_row += d_row
                         current_col += d_col
-
                         if not (0 <= current_row < 8 and 0 <= current_col < 8):
                             break
                         if (canvases[(current_row, current_col)].find_withtag("white_piece") or canvases[(current_row, current_col)].find_withtag("white_king")) and turn == "red":
                             capture_found = True  
                         elif (canvases[(current_row, current_col)].find_withtag("red_piece") or canvases[(current_row, current_col)].find_withtag("red_king")) and turn == "white":
                             capture_found = True  
-
                         elif (canvases[(current_row, current_col)].find_withtag("white_piece") or canvases[(current_row, current_col)].find_withtag("white_king")) and turn == "white":
                             break  
                         elif (canvases[(current_row, current_col)].find_withtag("red_piece") or canvases[(current_row, current_col)].find_withtag("red_king")) and turn == "red":
@@ -220,19 +190,15 @@ def game():
                     mid_col = (old_col + col) // 2
                     if canvases[(mid_row, mid_col)].find_withtag("red_piece") or canvases[(mid_row, mid_col)].find_withtag("red_king"):
                         return not piece_present
-
         return False
-
     def move_piece(row, col):
         old_row, old_col = selected_coords
         piece_color = selected_piece.color
-
         piece_tag = "red_king" if piece_color == "red" and selected_piece.is_king else \
                     "white_king" if piece_color == "white" and selected_piece.is_king else \
                     "red_piece" if piece_color == "red" else "white_piece"
         canvases[(old_row, old_col)].delete(piece_tag)
         board[old_row][old_col] = None
-
         capture_found = False  
         captured_coords = None
         if selected_piece.is_king:
@@ -245,13 +211,10 @@ def game():
                         break
                     opponent_piece_tag = "white_piece" if piece_color == "red" else "red_piece"
                     opponent_king_tag = "white_king" if piece_color == "red" else "red_king"
-
                     if (canvases[(current_row, current_col)].find_withtag(opponent_piece_tag) or 
                         canvases[(current_row, current_col)].find_withtag(opponent_king_tag)):
-
                         next_row = current_row + d_row
                         next_col = current_col + d_col
-
                         if (next_row, next_col) == (row, col):
                             captured_coords = (current_row, current_col)
                             capture_found = True
@@ -271,7 +234,6 @@ def game():
             canvases[(row, col)].create_oval(10, 10, 50, 50, fill=piece_color, outline="", 
                                             tags="red_king" if piece_color == "red" else "white_king")
             canvases[(row, col)].create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
-
         else:
             if abs(old_row - row) == 2: 
                 mid_row = (old_row + row) // 2
@@ -290,7 +252,6 @@ def game():
                         board[mid_row][mid_col] = None
                         capture_found = True
                         captured_coords = (mid_row, mid_col)
-
                 board[row][col] = selected_piece
                 canvases[(row, col)].create_oval(10, 10, 50, 50, fill=piece_color, outline="", 
                                                 tags="red_piece" if piece_color == "red" else "white_piece")
@@ -310,15 +271,28 @@ def game():
             if check_for_chain_capture(row, col):
                 return True 
         return capture_found
+
     def check_game_over():
         red_count = sum(1 for row in board for piece in row if piece and piece.color == "red")
         white_count = sum(1 for row in board for piece in row if piece and piece.color == "white")
         if red_count == 0:
             messagebox.showinfo("Fin del juego", "¡Las blancas ganan!")
             window.quit()
+            #Player 2 gana
+            #Player 2 lo busco en users.Json
+            #Modifico el valor de "partidas_ganadas" sumandole 1
+            #Busco player 1 en users.Json
+            #modifico el valor de Player 1 y Player 2 de "partidas_jugadas" sumandole 1
+            #Guardo las modificaciones de esos jugadores en users.Json
         elif white_count == 0:
             messagebox.showinfo("Fin del juego", "¡Las rojas ganan!")
             window.quit()
+            #Player 1 gana
+            #Player 1 lo busco en users.Json
+            #Modifico el valor de "partidas_ganadas" sumandole 1
+            #Busco player 2 en users.Json
+            #Modifico el valor de Player 1 y Player 2 de "partidas_jugadas" sumandole 1
+            #Guardo las modificaciones de esos jugadores en users.Json
 
     window = tk.Tk()
     window.title("Damas")
@@ -330,4 +304,3 @@ def game():
     draw_board(board)
     window.mainloop()
 
-game()

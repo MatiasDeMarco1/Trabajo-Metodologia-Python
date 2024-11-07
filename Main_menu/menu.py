@@ -36,6 +36,7 @@ def menus():
                 print("Se necesitan 2 jugadores para iniciar el juego")
             else:
                     print("Inicio de juego...")
+                    print(logged_player)
                     game()
         elif choice == '0':
             print("Saliendo del programa.")

@@ -1,16 +1,35 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import filedialog, messagebox
+from Main_menu.login.login import logged_player
+import json
+import time
+import random
+import os
+JSON_PATH = "users.json"
+REPLAYS_FOLDER = "replays"
 
 class Piece:
     def __init__(self, color, is_king=False):
         self.color = color
-        self.is_king = is_king  
+        self.is_king = is_king
 
     def promote_to_king(self):
-        self.is_king = True  
+        self.is_king = True
 
+    def to_dict(self):
+        return {
+            "color": self.color,
+            "is_king": self.is_king
+        }
+    
 def game():
     moves = []
+    captured_pieces = {
+        "red": [],
+        "white": []
+    }
+    game_state = "in_progress"
+
     def create_board():
         board = [[None for _ in range(8)] for _ in range(8)]
         for row in range(8):
@@ -39,36 +58,38 @@ def game():
                         canvas.create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
 
     def on_click(event, row, col):
-        nonlocal selected_piece, selected_coords, turn
-        if selected_piece is None:
-            piece = (
-                canvases[(row, col)].find_withtag("red_piece") or
-                canvases[(row, col)].find_withtag("red_king") if turn == "red" else
-                canvases[(row, col)].find_withtag("white_piece") or
-                canvases[(row, col)].find_withtag("white_king")
-            )
-            if piece:
-                selected_piece = board[row][col]
-                selected_coords = (row, col)
-                highlight_piece(row, col)
-                highlight_valid_moves() 
-        else:
-            if is_valid_move(row, col):
-                capture_found = move_piece(row, col)
-                if not capture_found:
-                    turn = "white" if turn == "red" else "red" 
-                elif capture_found:
-                    if not check_for_chain_capture(row, col):
-                        turn = "white" if turn == "red" else "red"
-                
-                selected_piece = None
-                selected_coords = None
-                remove_highlight()  
-                check_game_over() 
+            nonlocal selected_piece, selected_coords, turn
+            if selected_piece is None:
+                piece = (
+                    canvases[(row, col)].find_withtag("red_piece") or
+                    canvases[(row, col)].find_withtag("red_king") if turn == "red" else
+                    canvases[(row, col)].find_withtag("white_piece") or
+                    canvases[(row, col)].find_withtag("white_king")
+                )
+                if piece:
+                    selected_piece = board[row][col]
+                    selected_coords = (row, col)
+                    highlight_piece(row, col)
+                    highlight_valid_moves()
             else:
-                remove_highlight()
-                selected_piece = None 
-                highlight_valid_moves()
+                if is_valid_move(row, col):
+                    capture_found = move_piece(row, col)
+                    moves.append((selected_coords, (row, col)))  # Almacenar el movimiento
+                    if capture_found:
+                        captured_pieces[turn].append(board[(row + selected_coords[0]) // 2][(col + selected_coords[1]) // 2])  # Almacenar pieza capturada
+                    if not capture_found:
+                        turn = "white" if turn == "red" else "red"
+                    elif capture_found:
+                        if not check_for_chain_capture(row, col):
+                            turn = "white" if turn == "red" else "red"
+                    selected_piece = None
+                    selected_coords = None
+                    remove_highlight()
+                    check_game_over()
+                else:
+                    remove_highlight()
+                    selected_piece = None
+                    highlight_valid_moves()
 
     def check_for_chain_capture(row, col):
         piece_color = selected_piece.color
@@ -276,23 +297,80 @@ def game():
         red_count = sum(1 for row in board for piece in row if piece and piece.color == "red")
         white_count = sum(1 for row in board for piece in row if piece and piece.color == "white")
         if red_count == 0:
+            winner = "player 2"
+            loser = "player 1"
             messagebox.showinfo("Fin del juego", "¡Las blancas ganan!")
-            window.quit()
-            #Player 2 gana
-            #Player 2 lo busco en users.Json
-            #Modifico el valor de "partidas_ganadas" sumandole 1
-            #Busco player 1 en users.Json
-            #modifico el valor de Player 1 y Player 2 de "partidas_jugadas" sumandole 1
-            #Guardo las modificaciones de esos jugadores en users.Json
         elif white_count == 0:
+            winner = "player 1"
+            loser = "player 2"
             messagebox.showinfo("Fin del juego", "¡Las rojas ganan!")
-            window.quit()
-            #Player 1 gana
-            #Player 1 lo busco en users.Json
-            #Modifico el valor de "partidas_ganadas" sumandole 1
-            #Busco player 2 en users.Json
-            #Modifico el valor de Player 1 y Player 2 de "partidas_jugadas" sumandole 1
-            #Guardo las modificaciones de esos jugadores en users.Json
+        else:
+            return
+        player_winner = logged_player[winner]
+        player_loser = logged_player[loser]
+
+        with open(JSON_PATH, 'r') as file:
+            users_data = json.load(file)
+        users_data[player_winner]["partidas_ganadas"] += 1
+        users_data[player_winner]["partidas_jugadas"] += 1
+        users_data[player_loser]["partidas_jugadas"] += 1
+
+        with open(JSON_PATH, 'w') as file:
+            json.dump(users_data, file, indent=4)
+
+        save_replay(moves, board, turn, captured_pieces, logged_player["player 1"], logged_player["player 2"], "finished")
+        window.quit()
+
+    def save_replay(moves, board, current_turn, captured_pieces, player1_name, player2_name, game_state):
+        # Convertir las piezas en el tablero a un formato serializable
+        board_data = [[piece.to_dict() if piece else None for piece in row] for row in board]
+        
+        # Convertir las piezas capturadas
+        captured_pieces_data = [piece.to_dict() for piece in captured_pieces]
+        
+        replay_data = {
+            "moves": moves,
+            "board": board_data,
+            "turn": current_turn,
+            "captured_pieces": captured_pieces_data,
+            "player1_name": player1_name,
+            "player2_name": player2_name,
+            "game_state": game_state
+        }
+
+        # Generar un nombre único para el archivo usando la fecha y hora
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        file_name = f"replay_{timestamp}.json"
+
+        # Guardar los datos en un archivo JSON único por partida
+        with open(file_name, "w") as file:
+            json.dump(replay_data, file, indent=4)
+
+
+    def load_replay():
+        replay_file = filedialog.askopenfilename(
+            title="Selecciona un archivo de repetición",
+            filetypes=(("Archivos de texto", "*.txt"), ("Todos los archivos", "*.*"))
+        )
+        if replay_file:
+            with open(replay_file, 'r') as file:
+                replay_moves = file.readlines()
+            simulate_replay(replay_moves)
+
+    def simulate_replay(replay_moves):
+        move_index = 0
+        def replay_move():
+            nonlocal move_index
+            if move_index < len(replay_moves):
+                move = eval(replay_moves[move_index].strip())  # Convierte el texto del movimiento en una tupla
+                move_index += 1
+                old_coords, new_coords = move
+                old_row, old_col = old_coords
+                new_row, new_col = new_coords
+                # Realiza el movimiento en el tablero
+                move_piece(new_row, new_col)
+                window.after(1000, replay_move)  # Llama a la función cada 1 segundo
+        replay_move()
 
     window = tk.Tk()
     window.title("Damas")
@@ -302,5 +380,6 @@ def game():
     canvases = {}
     board = create_board()
     draw_board(board)
+    replay_button = tk.Button(window, text="Ver repeticiones", command=load_replay)
+    replay_button.grid(row=8, column=0, columnspan=8)
     window.mainloop()
-

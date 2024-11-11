@@ -1,13 +1,13 @@
 from Main_menu.register.register import register
 from Main_menu.login.login import login, logged_player 
-from Main_menu.ranking.ranking import ranking_plays,ranking_wins
+from Main_menu.ranking.ranking import ranking_plays, ranking_wins
 from Main_menu.game.start import game
 
 def print_menu(filename):
     with open(filename, "r") as file:
         options = file.readlines()
     return [option.strip() for option in options]
-        
+
 def menus():
     menu = print_menu("menu.txt")
     while True:
@@ -35,9 +35,9 @@ def menus():
             if len(logged_player) < 2:
                 print("Se necesitan 2 jugadores para iniciar el juego")
             else:
-                    print("Inicio de juego...")
-                    print(logged_player)
-                    game()
+                print("Inicio de juego...")
+                print(logged_player)
+                game()
         elif choice == '0':
             print("Saliendo del programa.")
             break

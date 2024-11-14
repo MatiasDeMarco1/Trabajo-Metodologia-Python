@@ -19,7 +19,6 @@ class Piece:
 
 
 def game():
-    board = []
     def save_game(board, turn):
         game_data = {
             "board": [[piece.color if piece else None for piece in row] for row in board],
@@ -362,9 +361,9 @@ def game():
     replay_button = tk.Button(window, text="Ver repeticiones")
     save_button = tk.Button(window, text="Guardar partida")
     load_button= tk.Button(window, text="Cargar partida")
-    replay_button.grid(row=8, column=0, columnspan=8)
+    replay_button.grid(row=8, column=0, columnspan=2, sticky="ew")
     save_button = tk.Button(window, text="Guardar partida", command=lambda: save_game(board, turn))
-    save_button.grid(row=8, column=3, columnspan=8)
+    save_button.grid(row=8, column=2, columnspan=2, sticky="ew")
     load_button = tk.Button(window, text="Cargar partida", command=lambda: load_game(board, canvases))
-    load_button.grid(row=8, column=6, columnspan=8)
+    load_button.grid(row=8, column=4, columnspan=2, sticky="ew")
     window.mainloop()

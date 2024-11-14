@@ -45,32 +45,41 @@ def game():
         file_path = filedialog.askopenfilename(initialdir=SAVES_FOLDER, title="Seleccionar partida guardada", filetypes=(("Archivos JSON", "*.json"),))
         if not file_path:
             return  
+
         with open(file_path, "r") as f:
             game_data = json.load(f)
-        if game_data["player_1"] != logged_player["player 1"] or game_data["player_2"] != logged_player["player 2"]:
+
+        if game_data["player_1"] not in [logged_player["player 1"], logged_player["player 2"]] or \
+        game_data["player_2"] not in [logged_player["player 1"], logged_player["player 2"]]:
+            messagebox.showerror("Error", "Los jugadores del archivo no coinciden con los jugadores actuales. No se puede cargar la partida.")
+            return  
+
+        if game_data["player_1"] == logged_player["player 2"] and game_data["player_2"] == logged_player["player 1"]:
             logged_player["player 1"], logged_player["player 2"] = logged_player["player 2"], logged_player["player 1"]
+            print("Se han intercambiado los jugadores en logged_player.")
+
         for row in range(8):
             for col in range(8):
-                canvases[(row, col)].delete("all")  
+                canvases[(row, col)].delete("all") 
         for row in range(8):
             for col in range(8):
-                piece_data = game_data["board"][row][col] 
+                piece_data = game_data["board"][row][col]
                 if piece_data:
                     piece_color = piece_data["color"]
                     is_king = piece_data["is_king"]
-
                     piece = Piece(piece_color, is_king=is_king)
-                    board[row][col] = piece 
-
+                    board[row][col] = piece
                     canvas = canvases[(row, col)]
-                    if is_king== False:
-                        piece_tag = f"{piece_color}_piece"
+                    if is_king:
+                        piece_tag = f"{piece_color}_king"
                     else:
-                        piece_tag=f"{piece_color}_king"
+                        piece_tag = f"{piece_color}_piece"
+
                     canvas.create_oval(10, 10, 50, 50, fill=piece_color, outline="", tags=piece_tag)
 
                     if is_king:
                         canvas.create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
+
         turn = game_data["turn"]
         messagebox.showinfo("Cargar partida", "La partida ha sido cargada exitosamente.")
         

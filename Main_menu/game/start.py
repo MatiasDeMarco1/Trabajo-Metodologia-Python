@@ -21,17 +21,24 @@ class Piece:
 def game():
     def save_game(board, turn):
         game_data = {
-            "board": [[piece.color if piece else None for piece in row] for row in board],
+            "board": [
+                [
+                    {"color": piece.color, "is_king": piece.is_king} if piece else None 
+                    for piece in row
+                ] 
+                for row in board
+            ],
             "turn": turn,
             "player_1": logged_player["player 1"],
             "player_2": logged_player["player 2"],
         }
 
-        save_path = os.path.join(SAVES_FOLDER, f"game_{logged_player["player 1"] + "" + logged_player["player 2"]}.json")
+        save_path = os.path.join(SAVES_FOLDER, f"game_{logged_player['player 1']}{logged_player['player 2']}.json")
 
         with open(save_path, "w") as f:
             json.dump(game_data, f, indent=4)
         messagebox.showinfo("Guardar partida", "La partida ha sido guardada exitosamente.")
+
 
     def load_game(board, canvases):
         nonlocal turn
@@ -40,28 +47,33 @@ def game():
             return  
         with open(file_path, "r") as f:
             game_data = json.load(f)
-
         if game_data["player_1"] != logged_player["player 1"] or game_data["player_2"] != logged_player["player 2"]:
             logged_player["player 1"], logged_player["player 2"] = logged_player["player 2"], logged_player["player 1"]
-
         for row in range(8):
             for col in range(8):
-                canvases[(row, col)].delete("all") 
-
+                canvases[(row, col)].delete("all")  
         for row in range(8):
             for col in range(8):
-                piece_color = game_data["board"][row][col]
-                if piece_color:
-                    piece = Piece(piece_color)
-                    board[row][col] = piece
+                piece_data = game_data["board"][row][col] 
+                if piece_data:
+                    piece_color = piece_data["color"]
+                    is_king = piece_data["is_king"]
+
+                    piece = Piece(piece_color, is_king=is_king)
+                    board[row][col] = piece 
+
                     canvas = canvases[(row, col)]
-                    piece_tag = f"{piece_color}_piece"
+                    if is_king== False:
+                        piece_tag = f"{piece_color}_piece"
+                    else:
+                        piece_tag=f"{piece_color}_king"
                     canvas.create_oval(10, 10, 50, 50, fill=piece_color, outline="", tags=piece_tag)
-                    if piece.is_king:
-                        canvas.create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
 
+                    if is_king:
+                        canvas.create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
         turn = game_data["turn"]
         messagebox.showinfo("Cargar partida", "La partida ha sido cargada exitosamente.")
+        
         return turn
 
     def create_board():

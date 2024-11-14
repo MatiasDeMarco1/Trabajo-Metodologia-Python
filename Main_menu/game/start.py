@@ -7,6 +7,7 @@ import random
 import os
 JSON_PATH = "users.json"
 REPLAYS_FOLDER = "replays"
+SAVES_FOLDER = "saves"
 
 class Piece:
     def __init__(self, color, is_king=False):
@@ -16,19 +17,53 @@ class Piece:
     def promote_to_king(self):
         self.is_king = True
 
-    def to_dict(self):
-        return {
-            "color": self.color,
-            "is_king": self.is_king
-        }
-    
+
 def game():
-    moves = []
-    captured_pieces = {
-        "red": [],
-        "white": []
-    }
-    game_state = "in_progress"
+    board = []
+    def save_game(board, turn):
+        game_data = {
+            "board": [[piece.color if piece else None for piece in row] for row in board],
+            "turn": turn,
+            "player_1": logged_player["player 1"],
+            "player_2": logged_player["player 2"],
+        }
+
+        save_path = os.path.join(SAVES_FOLDER, f"game_{logged_player["player 1"] + "" + logged_player["player 2"]}.json")
+
+        with open(save_path, "w") as f:
+            json.dump(game_data, f, indent=4)
+        messagebox.showinfo("Guardar partida", "La partida ha sido guardada exitosamente.")
+
+    def load_game(board, canvases):
+        nonlocal turn
+        file_path = filedialog.askopenfilename(initialdir=SAVES_FOLDER, title="Seleccionar partida guardada", filetypes=(("Archivos JSON", "*.json"),))
+        if not file_path:
+            return  
+        with open(file_path, "r") as f:
+            game_data = json.load(f)
+
+        if game_data["player_1"] != logged_player["player 1"] or game_data["player_2"] != logged_player["player 2"]:
+            logged_player["player 1"], logged_player["player 2"] = logged_player["player 2"], logged_player["player 1"]
+
+        for row in range(8):
+            for col in range(8):
+                canvases[(row, col)].delete("all") 
+
+        for row in range(8):
+            for col in range(8):
+                piece_color = game_data["board"][row][col]
+                if piece_color:
+                    piece = Piece(piece_color)
+                    board[row][col] = piece
+                    canvas = canvases[(row, col)]
+                    piece_tag = f"{piece_color}_piece"
+                    canvas.create_oval(10, 10, 50, 50, fill=piece_color, outline="", tags=piece_tag)
+                    if piece.is_king:
+                        canvas.create_text(30, 30, text="K", fill="black", font=("Arial", 20, "bold"))
+
+        turn = game_data["turn"]
+        messagebox.showinfo("Cargar partida", "La partida ha sido cargada exitosamente.")
+        return turn
 
     def create_board():
         board = [[None for _ in range(8)] for _ in range(8)]
@@ -74,9 +109,6 @@ def game():
             else:
                 if is_valid_move(row, col):
                     capture_found = move_piece(row, col)
-                    moves.append((selected_coords, (row, col)))  # Almacenar el movimiento
-                    if capture_found:
-                        captured_pieces[turn].append(board[(row + selected_coords[0]) // 2][(col + selected_coords[1]) // 2])  # Almacenar pieza capturada
                     if not capture_found:
                         turn = "white" if turn == "red" else "red"
                     elif capture_found:
@@ -317,69 +349,22 @@ def game():
 
         with open(JSON_PATH, 'w') as file:
             json.dump(users_data, file, indent=4)
-
-        save_replay(moves, board, turn, captured_pieces, logged_player["player 1"], logged_player["player 2"], "finished")
         window.quit()
-
-    def save_replay(moves, board, current_turn, captured_pieces, player1_name, player2_name, game_state):
-        # Convertir las piezas en el tablero a un formato serializable
-        board_data = [[piece.to_dict() if piece else None for piece in row] for row in board]
-        
-        # Convertir las piezas capturadas
-        captured_pieces_data = [piece.to_dict() for piece in captured_pieces]
-        
-        replay_data = {
-            "moves": moves,
-            "board": board_data,
-            "turn": current_turn,
-            "captured_pieces": captured_pieces_data,
-            "player1_name": player1_name,
-            "player2_name": player2_name,
-            "game_state": game_state
-        }
-
-        # Generar un nombre único para el archivo usando la fecha y hora
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        file_name = f"replay_{timestamp}.json"
-
-        # Guardar los datos en un archivo JSON único por partida
-        with open(file_name, "w") as file:
-            json.dump(replay_data, file, indent=4)
-
-
-    def load_replay():
-        replay_file = filedialog.askopenfilename(
-            title="Selecciona un archivo de repetición",
-            filetypes=(("Archivos de texto", "*.txt"), ("Todos los archivos", "*.*"))
-        )
-        if replay_file:
-            with open(replay_file, 'r') as file:
-                replay_moves = file.readlines()
-            simulate_replay(replay_moves)
-
-    def simulate_replay(replay_moves):
-        move_index = 0
-        def replay_move():
-            nonlocal move_index
-            if move_index < len(replay_moves):
-                move = eval(replay_moves[move_index].strip())  # Convierte el texto del movimiento en una tupla
-                move_index += 1
-                old_coords, new_coords = move
-                old_row, old_col = old_coords
-                new_row, new_col = new_coords
-                # Realiza el movimiento en el tablero
-                move_piece(new_row, new_col)
-                window.after(1000, replay_move)  # Llama a la función cada 1 segundo
-        replay_move()
 
     window = tk.Tk()
     window.title("Damas")
     selected_piece = None
     selected_coords = None
-    turn = "red"
     canvases = {}
+    turn ="red" 
     board = create_board()
     draw_board(board)
-    replay_button = tk.Button(window, text="Ver repeticiones", command=load_replay)
+    replay_button = tk.Button(window, text="Ver repeticiones")
+    save_button = tk.Button(window, text="Guardar partida")
+    load_button= tk.Button(window, text="Cargar partida")
     replay_button.grid(row=8, column=0, columnspan=8)
+    save_button = tk.Button(window, text="Guardar partida", command=lambda: save_game(board, turn))
+    save_button.grid(row=8, column=3, columnspan=8)
+    load_button = tk.Button(window, text="Cargar partida", command=lambda: load_game(board, canvases))
+    load_button.grid(row=8, column=6, columnspan=8)
     window.mainloop()

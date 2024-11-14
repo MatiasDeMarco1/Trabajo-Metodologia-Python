@@ -1,17 +1,17 @@
 {
     "juanchi": {
         "password": "asd12343",
-        "partidas_ganadas": 3,
-        "partidas_jugadas": 7
+        "partidas_ganadas": 4,
+        "partidas_jugadas": 11
     },
     "mati": {
         "password": "asd1234",
-        "partidas_ganadas": 4,
-        "partidas_jugadas": 8
+        "partidas_ganadas": 6,
+        "partidas_jugadas": 11
     },
     "angy": {
         "password": "asd1234",
-        "partidas_ganadas": 1,
-        "partidas_jugadas": 1
+        "partidas_ganadas": 2,
+        "partidas_jugadas": 2
     }
 }

@@ -3,4 +3,5 @@
 2. Registrarse
 3. Ranking
 4. Inicio de juego
+5. Cerrar sesion
 0. Exit

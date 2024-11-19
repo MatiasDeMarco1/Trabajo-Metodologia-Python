@@ -2,41 +2,61 @@
     "board": [
         [
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red"
+            {
+                "color": "red",
+                "is_king": false
+            }
         ],
         [
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null
         ],
         [
             null,
-            "red",
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
             null,
             null,
-            "red",
-            null,
-            "red"
-        ],
-        [
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
+            {
+                "color": "red",
+                "is_king": false
+            },
             null,
             null
         ],
@@ -51,33 +71,82 @@
             null
         ],
         [
-            "white",
             null,
-            "white",
             null,
-            "white",
             null,
-            "red",
+            null,
+            null,
+            {
+                "color": "white",
+                "is_king": false
+            },
+            null,
+            {
+                "color": "red",
+                "is_king": false
+            }
+        ],
+        [
+            {
+                "color": "white",
+                "is_king": false
+            },
+            null,
+            {
+                "color": "white",
+                "is_king": false
+            },
+            null,
+            {
+                "color": "white",
+                "is_king": false
+            },
+            null,
+            {
+                "color": "white",
+                "is_king": false
+            },
             null
         ],
         [
             null,
-            "white",
+            {
+                "color": "white",
+                "is_king": false
+            },
             null,
-            "white",
+            {
+                "color": "white",
+                "is_king": false
+            },
             null,
-            "white",
             null,
-            "white"
+            null,
+            {
+                "color": "white",
+                "is_king": false
+            }
         ],
         [
-            "white",
+            {
+                "color": "white",
+                "is_king": false
+            },
             null,
-            "white",
+            {
+                "color": "white",
+                "is_king": false
+            },
             null,
-            "white",
+            {
+                "color": "white",
+                "is_king": false
+            },
             null,
-            "white",
+            {
+                "color": "red",
+                "is_king": true
+            },
             null
         ]
     ],

@@ -5,9 +5,11 @@ from Main_menu.game.start import game
 ## ^Los import que necesitamos para el funcionamiento del programa.^
 
 def print_menu(filename):
-    with open(filename, "r") as file:
+    script_dir = os.path.dirname(__file__)
+    file_path = os.path.join(script_dir, "..", filename)
+    with open(file_path, "r") as file:
         options = file.readlines()
-    return [option.strip() for option in options] #Abrimos el archivo "r" = Reading, solo lectura ya que lo que necesitamos es leer el menu.
+    return [option.strip() for option in options]#Abrimos el archivo "r" = Reading, solo lectura ya que lo que necesitamos es leer el menu.
 
 def menus():
     global logged_player
